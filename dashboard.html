@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard – Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: #9D68AA; min-height: 100vh; }
+
+    .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: black; color: white; }
+    .logo { font-size: 22px; font-weight: bold; }
+    .nav-links a { color: #5E2060; text-decoration: none; margin-left: 20px; font-weight: bold; }
+    .nav-links a:hover, .nav-links a.active { color: #aaa; }
+
+    .hero { text-align: center; padding: 36px 20px 10px; }
+    .hero h1 { font-size: 30px; font-weight: 700; }
+    .hero p { color: #666; margin-top: 5px; font-size: 13px; letter-spacing: 1px; }
+
+    .summary-strip { display: flex; justify-content: center; gap: 16px; padding: 28px 30px 10px; flex-wrap: wrap; }
+    .summary-card { background: white; border-radius: 14px; padding: 18px 28px; min-width: 130px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,.07); }
+    .summary-card .num { font-size: 30px; font-weight: 700; }
+    .summary-card .lbl { font-size: 11px; color: #888; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+    .summary-card.black-card { background: black; color: white; }
+    .summary-card.black-card .lbl { color: #999; }
+
+    .tabs { display: flex; justify-content: center; gap: 10px; padding: 24px 20px 0; flex-wrap: wrap; }
+    .tab-btn { padding: 8px 22px; border-radius: 30px; border: 1.5px solid #ccc; background: white; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .tab-btn:hover { border-color: black; }
+    .tab-btn.active { background: black; color: white; border-color: black; }
+
+    .grid-section { padding: 30px 40px 60px; }
+    .grid-section h2 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 18px; }
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+    /* Card */
+    .item-card { background: white; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,.08); overflow: hidden; position: relative; }
+    .item-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+
+    /* ✕ delete on hover */
+    .card-del {
+      position: absolute; top: 9px; left: 9px; z-index: 5;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(0,0,0,.72); color: white; border: none;
+      font-size: 12px; cursor: pointer; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+    }
+    .item-card:hover .card-del { opacity: 1; }
+    .card-del:hover { background: #c62828; }
+
+    .card-thumb { width: 100%; height: 140px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; }
+    .card-thumb img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .card-thumb .thumb-icon { font-size: 42px; }
+    .card-thumb .type-badge { position: absolute; top: 10px; right: 10px; background: black; color: white; font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px; }
+
+    .card-body { padding: 16px 18px; cursor: pointer; }
+    .card-title { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 4px; }
+    .card-meta  { font-size: 11px; color: #999; }
+    .card-foot  { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+    .status-pill { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
+    .status-pill.submitted { background: #e8f5e9; color: #2e7d32; }
+    .status-pill.pending   { background: #fff8e1; color: #f57f17; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #999; grid-column: 1/-1; }
+    .empty-state .big { font-size: 48px; margin-bottom: 12px; }
+
+    .add-card { background: white; border-radius: 16px; border: 2px dashed #d0d0d0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; cursor: pointer; text-decoration: none; color: #999; }
+    .add-card:hover { border-color: black; color: #333; }
+    .add-card .plus { font-size: 36px; margin-bottom: 8px; }
+    .add-card p { font-size: 13px; font-weight: 500; }
+
+    /* ── MODAL ── */
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: white; border-radius: 20px; padding: 28px 28px 24px; width: 500px; max-width: 100%; max-height: 92vh; overflow-y: auto; position: relative; }
+    
+    .modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 22px; cursor: pointer; color: #666; }
+    .modal h3 { font-size: 17px; font-weight: 700; padding-right: 30px; margin-bottom: 3px; }
+    .m-meta { font-size: 12px; color: #999; margin-bottom: 16px; }
+
+    /* Canvas editor */
+    .editor-box {
+      width: 100%; height: 200px; background: #eee; border-radius: 12px;
+      overflow: hidden; position: relative; cursor: grab; user-select: none;
+    }
+    .editor-box.grabbing { cursor: grabbing; }
+    .editor-box canvas { width: 100%; height: 100%; display: block; }
+
+    .no-proof { text-align: center; padding: 36px 20px; color: #bbb; font-size: 13px; background: #fafafa; border-radius: 12px; }
+
+    /* Position controls */
+    .pos-controls { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .pos-hint { font-size: 11px; color: #999; }
+    .reset-pos-btn { font-size: 11px; color: #aaa; background: none; border: none; cursor: pointer; text-decoration: underline; font-family: 'Poppins', sans-serif; }
+    .reset-pos-btn:hover { color: #333; }
+
+    .m-file { margin-top: 14px; background: #f5f5f5; border-radius: 10px; padding: 11px 14px; font-size: 12px; color: #444; display: flex; align-items: center; gap: 10px; }
+    .m-file .fi { font-size: 18px; }
+
+    .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .modal-actions > * { flex: 1; padding: 10px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; border: none; display: block; }
+    .btn-change { background: #f0f0f0; color: #333; }
+    .btn-change:hover { background: #e0e0e0; }
+    .btn-save { background: black; color: white; }
+    .btn-save:hover { background: #333; }
+    .btn-del { background: #fff0f0; color: #c62828; border: 1.5px solid #fbb !important; }
+    .btn-del:hover { background: #fdd; }
+
+    .confirm-box { display: none; margin-top: 12px; background: #fff5f5; border: 1.5px solid #fcc; border-radius: 10px; padding: 14px 16px; text-align: center; }
+    .confirm-box.show { display: block; }
+    .confirm-box p { font-size: 13px; color: #c62828; font-weight: 500; margin-bottom: 10px; }
+    .confirm-box .cbtn { display: inline-block; padding: 7px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; border: none; margin: 0 4px; }
+    .cbtn.yes { background: #c62828; color: white; }
+    .cbtn.no  { background: #eee; color: #333; }
+
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: black; color: white; padding: 11px 24px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,.2); z-index: 999; }
+    .toast.show { }
+
+    #m-img-input { display: none; }
+.gallery img{
+  image-orientation: inherit; image-resolution: inherit; image-rendering: inherit; shape-image-threshold: inherit; padding: 50px; background-image: 50px; width: auto; height: auto;
+}
+    
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">Portfolio</div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="upload.html">Upload</a>
+    <a href="dashboard.html" class="active">Dashboard</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>My Dashboard</h1>
+  <p>• quiz &nbsp;·&nbsp; lab activity &nbsp;·&nbsp; major exam •</p>
+</div>
+
+<div class="summary-strip">
+  <div class="summary-card black-card"><div class="num" id="total-count">8</div><div class="lbl">Total Uploaded</div></div>
+  <div class="summary-card"><div class="num" id="quiz-count">7</div><div class="lbl">Quizzes</div></div>
+  <div class="summary-card"><div class="num" id="lab-count">1</div><div class="lbl">Lab Activities</div></div>
+  <div class="summary-card"><div class="num" id="exam-count">0</div><div class="lbl">Major Exams</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="filterTab('all',this)">All</button>
+  <button class="tab-btn" onclick="filterTab('quiz',this)">Quizzes</button>
+  <button class="tab-btn" onclick="filterTab('lab',this)">Lab Activities</button>
+  <button class="tab-btn" onclick="filterTab('exam',this)">Major Exams</button>
+</div>
+
+<div class="grid-section">
+  <h2 id="section-label">All uploads</h2>
+  <div class="items-grid" id="items-grid"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal" onclick="backdropClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="m-title"></h3>
+    <div class="m-meta" id="m-meta"></div>
+
+    <!-- Image editor -->
+    <div id="editor-section">
+      <div class="editor-box" id="editor-box">
+        <canvas id="ed-canvas"></canvas>
+      </div>
+      <div class="pos-controls">
+        <div class="pos-hint">Drag the image to reposition it.</div>
+        <button class="reset-pos-btn" onclick="resetPos()">↺ Reset</button>
+      </div>
+    </div>
+    <div class="no-proof" id="no-proof-msg">No proof image yet — upload one below.</div>
+
+    <div class="m-file"><span class="fi">📄</span><span id="m-file-name"></span></div>
+
+    <div class="modal-actions">
+      <label class="btn-change" for="m-img-input">📷 Change Image</label>
+      <button class="btn-save" onclick="saveEntry()">💾 Save</button>
+      <button class="btn-del" onclick="showConfirm()">🗑 Delete</button>
+    </div>
+    <input type="file" id="m-img-input" accept="image/*" onchange="loadNewProof(this)">
+
+    <div class="confirm-box" id="confirm-box">
+      <p>Delete this entry? This cannot be undone.</p>
+      <button class="cbtn yes" onclick="doDelete()">Yes, delete</button>
+      <button class="cbtn no"  onclick="hideConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<h9> 
+
+  <img src="Quiz 1.jpg" alt="Quiz 1" width="180px" height="190px" padding="30px">
+  <img src="Quiz 2.jpg" alt="Quiz 2" width="180px" height="190px" padding="30px">
+  <img src="Quiz 3.jpg" alt="Quiz 3" width="180px" height="190px" padding="30px">
+  <img src="Long quiz midterm.jpg" alt="Midterm Long Quiz" width="180px" height="190px" padding="30px">
+  <img src="FinalQuiz 1.jpg" alt="Finals Quiz 1" width="180px" height="190px" padding="30px">
+  <img src="FinalQuiz 2.jpg" alt="Finals Quiz 1" width="180px" height="190px" padding="30px">
+  <img src="lab.jpg" alt="Lab" width="180px" height="190px" padding="30px">
+  <img src="Finals LongQuiz.jpg" ALT="Finals Long quiz" width="180px" height="190px" padding="30px">
+</h9>
+
+
+
+<div class="click-link">
+  <a href="https://github.com/trixiecereno-afk/PortfolioItec-"></a>
+</div>
+  
+
+
+
+
+<script>
+
+  const saved = JSON.parse(localStorage.getItem('dash_entries') || '[]');
+  const savedIds = saved.map(e => e.id);
+  const defaults = defaultEntries.filter(e => !savedIds.includes(e.id));
+  let entries = [...defaults, ...saved];
+  let currentFilter = 'all';
+  let activeEntry = null;
+
+  // editor vars
+  let edImg = null, eX = 0, eY = 0;
+  let dragging = false, dsx = 0, dsy = 0, dex = 0, dey = 0;
+
+  const canvas = document.getElementById('ed-canvas');
+  const ctx    = canvas.getContext('2d');
+  const eBox   = document.getElementById('editor-box');
+
+  function saveLS() {
+    const toSave = entries.filter(e => !defaultEntries.find(d => d.id === e.id) || e.proof || e.edState);
+    localStorage.setItem('dash_entries', JSON.stringify(toSave));
+  }
+
+  const typeIcon  = { quiz:'📝', lab:'🔬', exam:'📋' };
+  const typeLabel = { quiz:'Quiz', lab:'Lab Activity', exam:'Major Exam' };
+  const statusLabel = { submitted:'Submitted', pending:'Pending' };
+
+  // ── RENDER ──
+  function renderGrid() {
+    document.getElementById('total-count').textContent = entries.length;
+    document.getElementById('quiz-count').textContent  = entries.filter(e=>e.type==='quiz').length;
+    document.getElementById('lab-count').textContent   = entries.filter(e=>e.type==='lab').length;
+    document.getElementById('exam-count').textContent  = entries.filter(e=>e.type==='exam').length;
+
+    const labels = { all:'All uploads', quiz:'Quizzes', lab:'Lab Activities', exam:'Major Exams' };
+    document.getElementById('section-label').textContent = labels[currentFilter];
+
+    const list = currentFilter === 'all' ? entries : entries.filter(e=>e.type===currentFilter);
+    const grid = document.getElementById('items-grid');
+
+    if (!list.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="big">📂</div><p>No uploads here yet.</p></div>`;
+      return;
+    }
+
+    const bg = { quiz:'#f0f0f0', lab:'#e8f5e9', exam:'#e3f2fd' };
+    grid.innerHTML = list.map(e => {
+      const imgSrc = e.originalProof || e.proof;
+      const pos = e.edState ? `object-position: calc(50% + ${e.edState.x}px) calc(50% + ${e.edState.y}px)` : '';
+      return `
+      <div class="item-card">
+        <button class="card-del" onclick="quickDel(event,${e.id})">✕</button>
+        <div class="card-thumb" style="background:${bg[e.type]}" onclick="openModal(${e.id})">
+          ${imgSrc ? `<img src="${imgSrc}" style="display:block;${pos}">` : `<div class="thumb-icon">${typeIcon[e.type]}</div>`}
+          <div class="type-badge">${typeLabel[e.type]}</div>
+        </div>
+        <div class="card-body" onclick="openModal(${e.id})">
+          <div class="card-title">${e.title}</div>
+          <div class="card-meta">${e.date} &nbsp;·&nbsp; ${e.file}</div>
+          <div class="card-foot">
+            <span class="status-pill ${e.status}">${statusLabel[e.status]||e.status}</span>
+            <span>${imgSrc?'🖼️':'📄'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('') + `<a class="add-card" href="upload.html"><div class="plus">+</div><p>Add new upload</p></a>`;
+  }
+
+  function filterTab(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid();
+  }
+
+  // ── QUICK DELETE (card X button) ──
+  function quickDel(e, id) {
+    e.stopPropagation();
+    if (!confirm('Remove this entry?')) return;
+    entries = entries.filter(en=>en.id!==id);
+    saveLS(); renderGrid(); showToast('🗑️ Entry removed');
+  }
+
+  // ── OPEN MODAL ──
+  function openModal(id) {
+    activeEntry = entries.find(e=>e.id===id);
+    if (!activeEntry) return;
+
+    document.getElementById('m-title').textContent    = activeEntry.title;
+    document.getElementById('m-meta').textContent     = typeLabel[activeEntry.type] + '  ·  ' + activeEntry.date;
+    document.getElementById('m-file-name').textContent= activeEntry.file;
+    document.getElementById('m-img-input').value = '';
+    hideConfirm();
+
+    if (activeEntry.proof || activeEntry.originalProof) {
+      showEditorSection();
+      initEditor(activeEntry.originalProof || activeEntry.proof, activeEntry.edState || null);
+    } else {
+      hideEditorSection();
+    }
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  function backdropClick(e) { if (e.target===document.getElementById('modal')) closeModal(); }
+
+  function showEditorSection() {
+    document.getElementById('editor-section').style.display='block';
+    document.getElementById('no-proof-msg').style.display='none';
+  }
+  function hideEditorSection() {
+    document.getElementById('editor-section').style.display='none';
+    document.getElementById('no-proof-msg').style.display='block';
+  }
+
+  // ── CANVAS EDITOR ──
+  function initEditor(src, state) {
+    edImg = new Image();
+    edImg.onload = () => {
+      canvas.width  = eBox.offsetWidth  || 440;
+      canvas.height = eBox.offsetHeight || 200;
+      if (state) { eX=state.x; eY=state.y; }
+      else        { eX=0; eY=0; }
+      draw();
+    };
+    edImg.src = src;
+  }
+
+  function draw() {
+    if (!edImg) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // cover: scale so image fills the entire canvas (like object-fit: cover)
+    const ratio = Math.max(canvas.width/edImg.naturalWidth, canvas.height/edImg.naturalHeight);
+    const dw = edImg.naturalWidth  * ratio;
+    const dh = edImg.naturalHeight * ratio;
+    const dx = (canvas.width-dw)/2 + eX;
+    const dy = (canvas.height-dh)/2 + eY;
+    ctx.drawImage(edImg, dx, dy, dw, dh);
+  }
+
+  function resetPos() { eX=0; eY=0; draw(); }
+
+  // drag to pan
+  eBox.addEventListener('mousedown', e=>{ dragging=true; dsx=e.clientX; dsy=e.clientY; dex=eX; dey=eY; eBox.classList.add('grabbing'); });
+  window.addEventListener('mousemove', e=>{ if(!dragging) return; eX=dex+(e.clientX-dsx); eY=dey+(e.clientY-dsy); draw(); });
+  window.addEventListener('mouseup',   ()=>{ dragging=false; eBox.classList.remove('grabbing'); });
+  eBox.addEventListener('touchstart', e=>{ const t=e.touches[0]; dragging=true; dsx=t.clientX; dsy=t.clientY; dex=eX; dey=eY; });
+  eBox.addEventListener('touchmove',  e=>{ if(!dragging) return; e.preventDefault(); const t=e.touches[0]; eX=dex+(t.clientX-dsx); eY=dey+(t.clientY-dsy); draw(); }, {passive:false});
+  eBox.addEventListener('touchend',   ()=>{ dragging=false; });
+
+  // ── LOAD NEW IMAGE ──
+  function loadNewProof(input) {
+    if(!input.files||!input.files[0]) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      if(!activeEntry) return;
+      activeEntry.originalProof = ev.target.result;
+      activeEntry.proof = ev.target.result;
+      activeEntry.edState = null;
+      showEditorSection();
+      initEditor(ev.target.result, null);
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  // ── SAVE ──
+  function saveEntry() {
+    if(!activeEntry) return;
+    if(edImg) {
+      // store original + offset — thumbnail uses CSS object-position (no black bars)
+      if(!activeEntry.originalProof) activeEntry.originalProof = activeEntry.proof;
+      activeEntry.edState = { x:eX, y:eY };
+    }
+    activeEntry.status = 'submitted';
+    const idx = entries.findIndex(e=>e.id===activeEntry.id);
+    if(idx!==-1) entries[idx] = {...activeEntry};
+    saveLS(); renderGrid(); closeModal();
+    showToast('✅ Changes saved!');
+  }
+
+  // ── DELETE from modal ──
+  function showConfirm()  { document.getElementById('confirm-box').classList.add('show'); }
+  function hideConfirm()  { document.getElementById('confirm-box').classList.remove('show'); }
+  function doDelete() {
+    if(!activeEntry) return;
+    entries = entries.filter(e=>e.id!==activeEntry.id);
+    saveLS(); renderGrid(); closeModal();
+    showToast('🗑️ Entry deleted');
+  }
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2800);
+  }
+
+  renderGrid();
+</script>
+</body>
+</html>

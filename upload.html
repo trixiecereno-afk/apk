@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Activities – Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+    body { background: #9D68AA; min-height: 100vh; }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+      background:#1A191B;
+      color: #5E2060;
+    }
+    .logo { font-size: 22px; font-weight: bold; }
+    .nav-links a {
+      color: #5E2060;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: bold;
+      }
+    .nav-links a:hover, .nav-links a.active { color: #AA46BB; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 40px 20px 10px;
+    }
+    .hero h1 { font-size: 32px; font-weight: 700; }
+    .hero p  { color: #AA46BB; margin-top: 6px; font-size: 14px; letter-spacing: 1px; }
+
+    /* ── Grid of upload cards ── */
+    .upload-grid {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      padding: 40px 30px 60px;
+    }
+
+    /* ── Single upload card ── */
+    .upload-card {
+      background: #6B626F;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px #F1F1F1;
+      padding: 36px 32px;
+      width: 340px;
+      }
+    .upload-card:hover {
+      box-shadow: 0 20px 40px #F1F1F1;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .card-icon {
+      width: 46px; height: 46px;
+      background: #BE83C8;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-icon svg { width: 24px; height: 24px; fill: black; }
+    .card-header h2 { font-size: 18px; font-weight: 700; }
+    .card-header span { font-size: 12px; color: #999; display: block; margin-top: 2px; }
+
+    /* ── File drop zone ── */
+    .drop-zone {
+      border: 2px dashed #9467AA;
+      border-radius: 12px;
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #BD5ADA;
+      background: #F1F1F1;
+    }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-zone .dz-icon { font-size: 28px; margin-bottom: 6px; }
+    .drop-zone p { font-size: 13px; color: #623A76; }
+    .drop-zone p strong { color: #A03FD3; }
+    .drop-zone .file-name {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #F7EFF8;
+      font-weight: 500;
+      word-break: break-all;
+      display: none;
+    }
+
+    /* ── Divider with label ── */
+    .proof-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0 14px;
+      opacity: 0;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .proof-label.visible { opacity: 1; pointer-events: auto; }
+    .proof-label span {
+      flex: 1; height: 1px; background: #630D90;
+    }
+    .proof-label p {
+      font-size: 11px;
+      font-weight: 600;
+      color: #000000E3;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    /* ── Image proof upload ── */
+    .proof-upload {
+      opacity: 0;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .proof-upload.visible { opacity: 1; pointer-events: auto; }
+
+    .img-drop-zone {
+      border: 2px dashed #F1F1F1;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      
+      position: relative;
+    }
+    .img-drop-zone:hover, .img-drop-zone.dragover {
+      border-color: #6B626F; background: #F1F1F1;
+    }
+    .img-drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .img-drop-zone p { font-size: 12px; color: #F1F1F1; }
+    .img-drop-zone p strong { color: #F1F1F1; }
+
+    /* ── Image preview ── */
+    .img-preview-wrap {
+      margin-top: 12px;
+      display: none;
+      position: relative;
+    }
+    .img-preview-wrap img {
+      width: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      max-height: 180px;
+      display: block;
+    }
+    .img-preview-wrap .remove-btn {
+      position: absolute;
+      top: 6px; right: 6px;
+      background: #F1F1F1;
+      color: #BD5ADA;
+      border: none;
+      border-radius: 50%;
+      width: 26px; height: 26px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+    }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: #F1F1F1;
+      color: #BD5ADA;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .submit-btn.visible { opacity: 1; pointer-events: auto; }
+    .submit-btn:hover { background: #BD5ADA; }
+    
+
+    /* ── Success toast ── */
+    .toast {
+      position: fixed;
+      top: 80px; left: 50%;
+      transform: translateX(-50%);
+      background: #BD5ADA; color: #A03FD3;
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px #BD5ADA;
+      z-index: 999;
+      white-space: nowrap;
+      display: none;
+    }
+    .toast.show { display: block; }
+
+    /* ── Status badge ── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-top: 6px;
+      background: #A721EE;
+      color: #BD5ADA;
+    }
+    .status-badge.uploaded { background: #A721EE; color: #000000E3; }
+    .status-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="logo">Portfolio</div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="upload.html" class="active">Upload</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>Upload Activities</h1>
+  <p>• quiz &nbsp;·&nbsp; lab activity &nbsp;·&nbsp; major exam •</p>
+</div>
+
+<!-- Cards -->
+<div class="upload-grid">
+
+  <!-- QUIZ CARD -->
+  <div class="upload-card" id="card-quiz">
+    <div class="card-header">
+      <div class="card-icon">
+        <!-- pencil icon -->
+        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      </div>
+      <div>
+        <h2>Quiz</h2>
+        <span id="status-quiz" class="status-badge"><span class="dot"></span>Waiting</span>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="dz-quiz" ondragover="handleDrag(event,'dz-quiz')" ondragleave="handleDragLeave(event,'dz-quiz')" ondrop="handleFileDrop(event,'quizFile','dz-quiz','proof-section-quiz')">
+      <input type="file" id="quizFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" onchange="handleFileSelect(this,'dz-quiz','proof-section-quiz','status-quiz')">
+      <div class="dz-icon">📄</div>
+      <p><strong>Click or drag</strong> your quiz file here</p>
+      <p>PDF, Word, PowerPoint or Image</p>
+      <div class="file-name" id="quizFile-name"></div>
+    </div>
+
+    <!-- Proof section (hidden until file chosen) -->
+    <div id="proof-section-quiz">
+      <div class="proof-label" id="proof-label-quiz">
+        <span></span><p>📷 Upload Image Proof</p><span></span>
+      </div>
+
+      <div class="proof-upload" id="proof-upload-quiz">
+        <div class="img-drop-zone" id="idz-quiz" ondragover="handleDrag(event,'idz-quiz')" ondragleave="handleDragLeave(event,'idz-quiz')" ondrop="handleImgDrop(event,'quizImg','idz-quiz','quiz-preview-wrap','quiz-preview')">
+          <input type="file" id="quizImg" accept="image/*" onchange="previewImg(this,'quiz-preview-wrap','quiz-preview')">
+          <p>🖼️ <strong>Click or drag</strong> proof image</p>
+          <p>JPG, PNG, WEBP</p>
+        </div>
+        <div class="img-preview-wrap" id="quiz-preview-wrap">
+          <img id="quiz-preview" src="" alt="Proof Preview">
+          <button class="remove-btn" onclick="removeImg('quiz-preview-wrap','quiz-preview','quizImg')">✕</button>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="submit-quiz" onclick="submitCard('quiz','status-quiz')">Submit Quiz ↑</button>
+    </div>
+  </div>
+
+  <!-- LAB ACTIVITY CARD -->
+  <div class="upload-card" id="card-lab">
+    <div class="card-header">
+      <div class="card-icon">
+        <!-- flask icon -->
+        <svg viewBox="0 0 24 24"><path d="M7 2v2h1v9l-3.5 5.5A1 1 0 0 0 5.36 20h13.28a1 1 0 0 0 .86-1.5L16 13V4h1V2H7zm5 11.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm-2-2a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1zm5 1a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1z"/></svg>
+      </div>
+      <div>
+        <h2>Lab Activity</h2>
+        <span id="status-lab" class="status-badge"><span class="dot"></span>Waiting</span>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="dz-lab" ondragover="handleDrag(event,'dz-lab')" ondragleave="handleDragLeave(event,'dz-lab')" ondrop="handleFileDrop(event,'labFile','dz-lab','proof-section-lab')">
+      <input type="file" id="labFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" onchange="handleFileSelect(this,'dz-lab','proof-section-lab','status-lab')">
+      <div class="dz-icon">🔬</div>
+      <p><strong>Click or drag</strong> your lab file here</p>
+      <p>PDF, Word, PowerPoint or Image</p>
+      <div class="file-name" id="labFile-name"></div>
+    </div>
+
+    <div id="proof-section-lab">
+      <div class="proof-label" id="proof-label-lab">
+        <span></span><p>📷 Upload Image Proof</p><span></span>
+      </div>
+      <div class="proof-upload" id="proof-upload-lab">
+        <div class="img-drop-zone" id="idz-lab" ondragover="handleDrag(event,'idz-lab')" ondragleave="handleDragLeave(event,'idz-lab')" ondrop="handleImgDrop(event,'labImg','idz-lab','lab-preview-wrap','lab-preview')">
+          <input type="file" id="labImg" accept="image/*" onchange="previewImg(this,'lab-preview-wrap','lab-preview')">
+          <p>🖼️ <strong>Click or drag</strong> proof image</p>
+          <p>JPG, PNG, WEBP</p>
+        </div>
+        <div class="img-preview-wrap" id="lab-preview-wrap">
+          <img id="lab-preview" src="" alt="Proof Preview">
+          <button class="remove-btn" onclick="removeImg('lab-preview-wrap','lab-preview','labImg')">✕</button>
+        </div>
+      </div>
+      <button class="submit-btn" id="submit-lab" onclick="submitCard('lab','status-lab')">Submit Lab Activity ↑</button>
+    </div>
+  </div>
+
+  <!-- MAJOR EXAM CARD -->
+  <div class="upload-card" id="card-exam">
+    <div class="card-header">
+      <div class="card-icon">
+        <!-- star/award icon -->
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <div>
+        <h2>Major Exam</h2>
+        <span id="status-exam" class="status-badge"><span class="dot"></span>Waiting</span>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="dz-exam" ondragover="handleDrag(event,'dz-exam')" ondragleave="handleDragLeave(event,'dz-exam')" ondrop="handleFileDrop(event,'examFile','dz-exam','proof-section-exam')">
+      <input type="file" id="examFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" onchange="handleFileSelect(this,'dz-exam','proof-section-exam','status-exam')">
+      <div class="dz-icon">📝</div>
+      <p><strong>Click or drag</strong> your exam file here</p>
+      <p>PDF, Word, PowerPoint or Image</p>
+      <div class="file-name" id="examFile-name"></div>
+    </div>
+
+    <div id="proof-section-exam">
+      <div class="proof-label" id="proof-label-exam">
+        <span></span><p>📷 Upload Image Proof</p><span></span>
+      </div>
+      <div class="proof-upload" id="proof-upload-exam">
+        <div class="img-drop-zone" id="idz-exam" ondragover="handleDrag(event,'idz-exam')" ondragleave="handleDragLeave(event,'idz-exam')" ondrop="handleImgDrop(event,'examImg','idz-exam','exam-preview-wrap','exam-preview')">
+          <input type="file" id="examImg" accept="image/*" onchange="previewImg(this,'exam-preview-wrap','exam-preview')">
+          <p>🖼️ <strong>Click or drag</strong> proof image</p>
+          <p>JPG, PNG, WEBP</p>
+        </div>
+        <div class="img-preview-wrap" id="exam-preview-wrap">
+          <img id="exam-preview" src="" alt="Proof Preview">
+          <button class="remove-btn" onclick="removeImg('exam-preview-wrap','exam-preview','examImg')">✕</button>
+        </div>
+      </div>
+      <button class="submit-btn" id="submit-exam" onclick="submitCard('exam','status-exam')">Submit Major Exam ↑</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">✅ Uploaded successfully!</div>
+
+<script>
+  // ── File select handler ──
+  function handleFileSelect(input, dzId, proofSectionId, statusId) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    showFileName(input.id, file.name);
+    revealProof(dzId, proofSectionId, statusId);
+  }
+
+  function showFileName(inputId, name) {
+    const nameEl = document.getElementById(inputId + '-name');
+    if (nameEl) {
+      nameEl.textContent = '📎 ' + name;
+      nameEl.style.display = 'block';
+    }
+  }
+
+  function revealProof(dzId, proofSectionId, statusId) {
+    const card = document.getElementById(proofSectionId);
+    const prefix = proofSectionId.replace('proof-section-', '');
+    document.getElementById('proof-label-' + prefix).classList.add('visible');
+    document.getElementById('proof-upload-' + prefix).classList.add('visible');
+    document.getElementById('submit-' + prefix).classList.add('visible');
+
+    const badge = document.getElementById(statusId);
+    badge.innerHTML = '<span class="dot"></span>File ready';
+    badge.style.background = '#fff8e1';
+    badge.style.color = '#f57f17';
+  }
+
+  // ── Image preview ──
+  function previewImg(input, wrapId, imgId) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const wrap = document.getElementById(wrapId);
+      const img  = document.getElementById(imgId);
+      img.src = e.target.result;
+      wrap.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  function removeImg(wrapId, imgId, inputId) {
+    document.getElementById(wrapId).style.display = 'none';
+    document.getElementById(imgId).src = '';
+    document.getElementById(inputId).value = '';
+  }
+
+  // ── Submit — save to localStorage then redirect ──
+  function submitCard(prefix, statusId) {
+    const fileInput  = document.getElementById(prefix === 'lab' ? 'labFile' : prefix === 'exam' ? 'examFile' : 'quizFile');
+    const imgPreview = document.getElementById(prefix + '-preview');
+
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      showToast('⚠️ Please select a file first!');
+      return;
+    }
+
+    const fileName = fileInput.files[0].name;
+    const proofSrc = imgPreview && imgPreview.src && imgPreview.src !== window.location.href ? imgPreview.src : null;
+
+    const typeLabel = { quiz: 'Quiz', lab: 'Lab Activity', exam: 'Major Exam' };
+
+    // Load existing entries
+    const entries = JSON.parse(localStorage.getItem('dash_entries') || '[]');
+
+    // Count how many of this type already exist to auto-number title
+    const sameType = entries.filter(e => e.type === prefix).length + 1;
+    const titles   = { quiz: 'Quiz', lab: 'Lab Activity', exam: 'Major Exam' };
+    const examNames = ['Midterm Exam', 'Final Exam'];
+    let title;
+    if (prefix === 'exam') {
+      title = examNames[sameType - 1] || ('Exam ' + sameType);
+    } else {
+      title = titles[prefix] + ' ' + sameType;
+    }
+
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const newEntry = {
+      id:     Date.now(),
+      type:   prefix,
+      title:  title,
+      date:   today,
+      file:   fileName,
+      proof:  proofSrc,
+      status: 'submitted'
+    };
+
+    entries.push(newEntry);
+    localStorage.setItem('dash_entries', JSON.stringify(entries));
+
+    // Show toast then redirect
+    showToast('✅ ' + typeLabel[prefix] + ' saved! Redirecting…');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1400);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  // ── Drag & drop helpers ──
+  function handleDrag(e, dzId) {
+    e.preventDefault();
+    document.getElementById(dzId).classList.add('dragover');
+  }
+  function handleDragLeave(e, dzId) {
+    document.getElementById(dzId).classList.remove('dragover');
+  }
+  function handleFileDrop(e, inputId, dzId, proofSectionId) {
+    e.preventDefault();
+    document.getElementById(dzId).classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (!files.length) return;
+    const input = document.getElementById(inputId);
+    // Identify status badge id from card id
+    const prefix = proofSectionId.replace('proof-section-', '');
+    const statusId = 'status-' + prefix;
+    showFileName(inputId, files[0].name);
+    revealProof(dzId, proofSectionId, statusId);
+  }
+  function handleImgDrop(e, inputId, dzId, wrapId, imgId) {
+    e.preventDefault();
+    document.getElementById(dzId).classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (!files.length) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById(wrapId).style.display = 'block';
+      document.getElementById(imgId).src = ev.target.result;
+    };
+    reader.readAsDataURL(files[0]);
+  }
+</script>
+</body>
+</html>
